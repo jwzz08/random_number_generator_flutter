@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:random_number_generator/component/number_row.dart';
 import 'package:random_number_generator/constant/color.dart';
 import 'package:random_number_generator/screens/settings_screen.dart';
 
@@ -12,6 +13,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int maxNumber = 1000;
   List<int> randomNumbers = [
     123,
     456,
@@ -27,10 +29,11 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
             children: [
-              _Header(),
-              _Body(randomNumbers: randomNumbers ),
+              _Header(
+                onPressed: onSettingsPop,
+              ),
+              _Body(randomNumbers: randomNumbers),
               _Footer(onPressed: onRandomNumberGenerate)
-              
             ],
           ),
         ),
@@ -39,13 +42,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void onRandomNumberGenerate() {
-
     final rand = Random();
 
     final Set<int> newNumbers = {};
 
     while (newNumbers.length != 3) {
-      final number = rand.nextInt(1000);
+      final number = rand.nextInt(maxNumber);
 
       newNumbers.add(number);
       print(newNumbers);
@@ -58,10 +60,27 @@ class _HomeScreenState extends State<HomeScreen> {
     print(Text('생성하기'));
   }
 
+  void onSettingsPop() async {
+    final int? result = await Navigator.of(context).push<int>(MaterialPageRoute(
+      builder: (context) {
+        return SettingsScreen(maxNumber: maxNumber,);
+      },
+    ),
+    );
+
+    if(result != null)
+      {
+        setState(() {
+          maxNumber = result;
+        });
+      }
+  }
 }
 
 class _Header extends StatelessWidget {
-  const _Header({super.key});
+  final VoidCallback onPressed;
+
+  const _Header({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -77,13 +96,7 @@ class _Header extends StatelessWidget {
           ),
         ),
         IconButton(
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) {
-                return SettingsScreen();
-              },)
-            );
-          },
+          onPressed: onPressed,
           icon: Icon(Icons.settings),
           color: RED_COLOR,
         )
@@ -95,7 +108,7 @@ class _Header extends StatelessWidget {
 class _Body extends StatelessWidget {
   final List<int> randomNumbers;
 
-  const _Body({super.key, required this.randomNumbers });
+  const _Body({super.key, required this.randomNumbers});
 
   @override
   Widget build(BuildContext context) {
@@ -106,20 +119,9 @@ class _Body extends StatelessWidget {
               .asMap()
               .entries
               .map((x) => Padding(
-            padding: EdgeInsets.only(
-                bottom: x.key == 2 ? 0 : 16.0),
-            child: Row(
-              children: x.value
-                  .toString()
-                  .split('')
-                  .map((y) => Image.asset(
-                'asset/img/$y.png',
-                height: 70.0,
-                width: 50.0,
-              ))
-                  .toList(),
-            ),
-          ))
+                    padding: EdgeInsets.only(bottom: x.key == 2 ? 0 : 16.0),
+                    child: NumberRow(number: x.value,)
+                  ))
               .toList()),
     );
   }
@@ -133,7 +135,7 @@ class _Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      //무한대 값을 넣어주게 되면 가로로 꽉 차게 만들 수 있다, row와 expanded 사용해도 됨.
+        //무한대 값을 넣어주게 되면 가로로 꽉 차게 만들 수 있다, row와 expanded 사용해도 됨.
         width: double.infinity,
         child: ElevatedButton(
           onPressed: onPressed,
@@ -142,4 +144,3 @@ class _Footer extends StatelessWidget {
         ));
   }
 }
-
